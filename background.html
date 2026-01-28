@@ -1,0 +1,181 @@
+﻿<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DNBRADIO — ASCII фон</title>
+  <style>
+    :root { --bg: #2b2f36; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { background: var(--bg); overflow: hidden; }
+    .ascii-bg {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+    }
+    .ascii-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+    .ascii-canvas {
+      line-height: 0.85;
+      letter-spacing: 0.05em;
+      color: rgba(0,0,0,0.15);
+      user-select: none;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: block;
+      white-space: pre;
+      font-family: monospace;
+      font-size: 9px;
+      margin-left: 10%;
+    }
+  </style>
+</head>
+<body>
+  <div class="ascii-bg">
+    <div class="ascii-wrap">
+      <div id="ascii" class="ascii-canvas"></div>
+    </div>
+  </div>
+
+  <script>
+    const ascii = document.getElementById('ascii');
+    const width = 140;
+    const height = 100;
+    let grid = [];
+    let colors = [];
+    let time = 0;
+    const stars = [];
+    const edges = [];
+
+    function initGrid() {
+      grid = [];
+      colors = [];
+      for (let y = 0; y < height; y++) {
+        const row = [];
+        const cRow = [];
+        for (let x = 0; x < width; x++) row.push(' ');
+        for (let x = 0; x < width; x++) cRow.push('#000000');
+        grid.push(row);
+        colors.push(cRow);
+      }
+    }
+
+    function renderGrid() {
+      let html = '';
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const ch = grid[y][x] === ' ' ? '&nbsp;' : grid[y][x];
+          html += `<span style="color:${colors[y][x]}">${ch}</span>`;
+        }
+        html += '<br>';
+      }
+      ascii.innerHTML = html;
+    }
+
+    function buildConstellations() {
+      stars.length = 0;
+      edges.length = 0;
+      const count = Math.floor((width * height) / 70);
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * (width - 1),
+          y: Math.random() * (height - 1),
+          hue: Math.random() * 360,
+          tw: Math.random() * 1.5 + 0.5
+        });
+      }
+      // Connect nearby stars into constellations
+      for (let i = 0; i < stars.length; i++) {
+        for (let j = i + 1; j < stars.length; j++) {
+          const dx = stars[i].x - stars[j].x;
+          const dy = stars[i].y - stars[j].y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < 110 && Math.random() < 0.12) {
+            edges.push({ a: i, b: j, phase: Math.random() * 1.0 });
+          }
+        }
+      }
+    }
+
+    function drawStar(x, y, ch, color) {
+      const ix = Math.round(x);
+      const iy = Math.round(y);
+      if (ix < 0 || ix >= width || iy < 0 || iy >= height) return;
+      grid[iy][ix] = ch;
+      colors[iy][ix] = color;
+    }
+
+    function drawLinePulse(x1, y1, x2, y2, t, baseHue) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const steps = Math.max(2, Math.floor(Math.hypot(dx, dy)));
+      const pulsePos = (Math.sin(t) * 0.5 + 0.5) * (steps - 1);
+
+      for (let i = 0; i < steps; i++) {
+        const u = i / (steps - 1);
+        const x = x1 + dx * u;
+        const y = y1 + dy * u;
+        const dist = Math.abs(i - pulsePos);
+        const glow = Math.exp(-(dist * dist) / 6.0);
+        if (glow > 0.05) {
+          const hue = (baseHue + i * 4 + t * 40) % 360;
+          const light = 25 + glow * 55;
+          drawStar(x, y, '*', `hsl(${hue}, 90%, ${light}%)`);
+        } else if (Math.random() < 0.04) {
+          drawStar(x, y, '.', 'rgba(200,210,230,0.25)');
+        }
+      }
+    }
+
+    function updateGrid() {
+      initGrid();
+      const t = time * 0.02;
+
+      // Soft background stars
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
+        const tw = 0.35 + 0.65 * Math.sin(t * s.tw + i * 0.7);
+        const light = 18 + tw * 25;
+        drawStar(s.x, s.y, '.', `hsl(${(s.hue + t * 20) % 360}, 60%, ${light}%)`);
+      }
+
+      // Pulsing constellations
+      for (let i = 0; i < edges.length; i++) {
+        const e = edges[i];
+        const a = stars[e.a];
+        const b = stars[e.b];
+        drawLinePulse(a.x, a.y, b.x, b.y, t + e.phase * 6.28, (a.hue + b.hue) * 0.5);
+      }
+
+      // Brighter anchor stars
+      for (let i = 0; i < stars.length; i++) {
+        if (i % 7 === 0) {
+          const s = stars[i];
+          drawStar(s.x, s.y, '•', `hsl(${s.hue}, 75%, 65%)`);
+        }
+      }
+
+      time++;
+    }
+
+    function animate() {
+      updateGrid();
+      renderGrid();
+      requestAnimationFrame(animate);
+    }
+
+    buildConstellations();
+    initGrid();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

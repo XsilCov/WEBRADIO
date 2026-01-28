@@ -1,0 +1,403 @@
+﻿<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DNBRADIO — темна тема</title>
+  <style>
+    :root {
+      --bg: #1b1f24;
+      --bg2: #11151a;
+      --ink: #e5e7eb;
+      --ink-strong: #cbd5e1;
+      --shadow: rgba(0,0,0,0.45);
+      --accent: #4b5563;
+      --accent2: #9ca3af;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 30% -10%, #2a313a 0%, transparent 60%),
+                  radial-gradient(900px 500px at 80% -20%, #1d232b 0%, transparent 60%),
+                  linear-gradient(180deg, var(--bg), var(--bg2));
+      overflow: hidden;
+    }
+
+    .ascii-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+    .ascii-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+    .ascii-canvas {
+      line-height: 0.85;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.12);
+      user-select: none;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-family: monospace;
+      margin-left: 10%;
+    }
+
+    .ui {
+      position: relative;
+      z-index: 10;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 40px;
+    }
+
+    .header {
+      width: 100%;
+      max-width: 600px;
+      overflow: hidden;
+    }
+    .header h1 {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 0;
+      color: var(--ink);
+      text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      white-space: nowrap;
+      animation: scroll 20s linear infinite;
+    }
+    @keyframes scroll {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 1px solid #2d3440;
+      background: rgba(30, 36, 44, 0.9);
+      color: var(--ink);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px var(--shadow);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .btn:hover { transform: scale(1.08); border-color: #3f4a5c; }
+
+    .btn.play {
+      width: 90px;
+      height: 90px;
+      background: linear-gradient(135deg, #4b5563 0%, #9ca3af 100%);
+      color: #0b0f14;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+      border: none;
+    }
+
+    .range {
+      width: 150px;
+      height: 8px;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+      background: linear-gradient(to right, #9ca3af 0%, #9ca3af 70%, rgba(255,255,255,0.15) 70%, rgba(255,255,255,0.15) 100%);
+      appearance: none;
+    }
+    .range::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .stations {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .station {
+      padding: 12px 24px;
+      border-radius: 30px;
+      border: 1px solid #2d3440;
+      background: rgba(30, 36, 44, 0.9);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.45);
+      transition: all 0.3s;
+    }
+    .station.active {
+      background: linear-gradient(135deg, #4b5563 0%, #9ca3af 100%);
+      color: #0b0f14;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+      border: none;
+    }
+    .station:hover { transform: translateY(-2px); }
+
+    .label {
+      font-size: 12px;
+      color: var(--ink-strong);
+      opacity: 0.8;
+      text-align: center;
+      margin-top: -10px;
+    }
+
+    .icon { width: 28px; height: 28px; }
+    .icon.big { width: 40px; height: 40px; }
+    .hidden { display: none; }
+
+    @media (max-width: 640px) {
+      .header h1 { font-size: 34px; }
+      .btn { width: 54px; height: 54px; }
+      .btn.play { width: 82px; height: 82px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ascii-bg">
+    <div class="ascii-wrap">
+      <div id="ascii" class="ascii-canvas"></div>
+    </div>
+  </div>
+
+  <div class="ui">
+    <div class="header">
+      <h1>drumNbuss Diagnosis</h1>
+    </div>
+
+    <div class="controls">
+      <button id="muteBtn" class="btn" aria-label="Mute">
+        <svg id="iconVol" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+        <svg id="iconMute" class="icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+      </button>
+
+      <button id="prevBtn" class="btn" aria-label="Previous">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+      </button>
+
+      <button id="playBtn" class="btn play" aria-label="Play">
+        <svg id="iconPlay" class="icon big" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <svg id="iconPause" class="icon big hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+      </button>
+
+      <button id="nextBtn" class="btn" aria-label="Next">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+      </button>
+
+      <input id="volume" class="range" type="range" min="0" max="100" value="70" />
+    </div>
+
+    <div class="label" id="stationLabel">Станція: DNB</div>
+
+    <div class="stations" id="stations"></div>
+  </div>
+
+  <audio id="audio" preload="none"></audio>
+
+  <script>
+    const stations = [
+      { name: 'DNB', url: 'https://streams.ilovemusic.de/iloveradio17.mp3' },
+      { name: 'Techno', url: 'https://jazz-wr11.ice.infomaniak.ch/jazz-wr11-128.mp3' }
+    ];
+
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('playBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const volumeEl = document.getElementById('volume');
+    const stationsEl = document.getElementById('stations');
+    const stationLabel = document.getElementById('stationLabel');
+    const iconPlay = document.getElementById('iconPlay');
+    const iconPause = document.getElementById('iconPause');
+    const iconVol = document.getElementById('iconVol');
+    const iconMute = document.getElementById('iconMute');
+
+    let currentStation = 0;
+    let isPlaying = false;
+    let isMuted = false;
+
+    function setVolumeUI(value) {
+      volumeEl.style.background = `linear-gradient(to right, #9ca3af 0%, #9ca3af ${value}%, rgba(255,255,255,0.15) ${value}%, rgba(255,255,255,0.15) 100%)`;
+    }
+
+    function setPlayUI(playing) {
+      isPlaying = playing;
+      iconPlay.classList.toggle('hidden', playing);
+      iconPause.classList.toggle('hidden', !playing);
+    }
+
+    function setMuteUI(muted) {
+      isMuted = muted;
+      iconVol.classList.toggle('hidden', muted);
+      iconMute.classList.toggle('hidden', !muted);
+    }
+
+    function loadStation(index) {
+      currentStation = index;
+      audio.src = stations[currentStation].url;
+      audio.load();
+      setPlayUI(false);
+      renderStations();
+      stationLabel.textContent = 'Станція: ' + stations[currentStation].name;
+    }
+
+    function renderStations() {
+      stationsEl.innerHTML = '';
+      stations.forEach((s, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'station' + (i === currentStation ? ' active' : '');
+        btn.textContent = s.name;
+        btn.addEventListener('click', () => loadStation(i));
+        stationsEl.appendChild(btn);
+      });
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play().then(() => setPlayUI(true)).catch(() => setPlayUI(false));
+      } else {
+        audio.pause();
+        setPlayUI(false);
+      }
+    });
+
+    muteBtn.addEventListener('click', () => {
+      audio.muted = !audio.muted;
+      setMuteUI(audio.muted);
+    });
+
+    prevBtn.addEventListener('click', () => {
+      const prev = (currentStation - 1 + stations.length) % stations.length;
+      loadStation(prev);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      const next = (currentStation + 1) % stations.length;
+      loadStation(next);
+    });
+
+    volumeEl.addEventListener('input', (e) => {
+      const value = Number(e.target.value || 0);
+      audio.volume = value / 100;
+      setVolumeUI(value);
+    });
+
+    audio.addEventListener('play', () => setPlayUI(true));
+    audio.addEventListener('pause', () => setPlayUI(false));
+    audio.addEventListener('ended', () => setPlayUI(false));
+
+    setVolumeUI(70);
+    audio.volume = 0.7;
+    loadStation(0);
+
+    // ASCII animation (same as light version)
+    const ascii = document.getElementById('ascii');
+    const width = 65;
+    const height = 65;
+    let grid = [];
+    let time = 0;
+
+    function initGrid() {
+      grid = [];
+      for (let y = 0; y < height; y++) {
+        const row = [];
+        for (let x = 0; x < width; x++) row.push(' ');
+        grid.push(row);
+      }
+    }
+
+    function renderGrid() {
+      let html = '';
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) html += grid[y][x];
+        html += '<br>';
+      }
+      ascii.innerHTML = html;
+    }
+
+    function updateGrid() {
+      initGrid();
+      const blockSize = 30;
+      const blockX = Math.floor(width / 2 - blockSize / 2);
+      const blockY = Math.floor(height / 2 - blockSize / 2);
+      const t = time * 0.005;
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (x >= blockX && x < blockX + blockSize && y >= blockY && y < blockY + blockSize) {
+            const innerDist = Math.min(
+              x - blockX,
+              blockX + blockSize - x,
+              y - blockY,
+              blockY + blockSize - y
+            );
+            const erosion = time * 0.0067;
+            if (innerDist > erosion) grid[y][x] = '1';
+            else grid[y][x] = Math.random() > 0.8 ? '1' : '0';
+          } else {
+            const dx = x - width / 2;
+            const dy = y - height / 2;
+            const angle = Math.atan2(dy, dx);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const wave = Math.sin(dist * 0.2 - t + angle * 1.5);
+            const flow = Math.sin(x * 0.08 + y * 0.04 + t * 0.4);
+            if (flow + wave > 0.4) grid[y][x] = '0';
+            else if (flow + wave < -0.4) grid[y][x] = '~';
+          }
+        }
+      }
+
+      for (let i = 0; i < 5; i++) {
+        let cx = blockX + Math.floor(Math.random() * blockSize);
+        let cy = blockY + Math.floor(Math.random() * blockSize);
+        const length = Math.floor(Math.random() * 10) + 5;
+        for (let j = 0; j < length; j++) {
+          if (cx >= 0 && cx < width && cy >= 0 && cy < height) grid[cy][cx] = '0';
+          cx += Math.floor(Math.random() * 3) - 1;
+          cy += Math.floor(Math.random() * 3) - 1;
+        }
+      }
+
+      time++;
+    }
+
+    function animate() {
+      updateGrid();
+      renderGrid();
+      requestAnimationFrame(animate);
+    }
+
+    initGrid();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
