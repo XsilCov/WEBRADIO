@@ -43,8 +43,8 @@
     }
     .diamond {
       position: relative;
-      width: 260px;
-      height: 260px;
+      width: 800px;
+      height: 600px;
       transform-style: preserve-3d;
       animation: spin 18s linear infinite;
     }
@@ -52,8 +52,8 @@
       position: absolute;
       inset: 0;
       margin: auto;
-      width: 180px;
-      height: 180px;
+      width: 420px;
+      height: 420px;
       border: 1px solid rgba(240, 120, 210, 0.35);
       background:
         linear-gradient(135deg, rgba(255, 120, 200, 0.18), rgba(90, 200, 255, 0.12)),
@@ -62,17 +62,17 @@
       box-shadow: 0 0 18px rgba(255, 120, 200, 0.25);
       backdrop-filter: blur(2px);
     }
-    .diamond-front { transform: translateZ(60px) rotate(45deg); }
-    .diamond-back { transform: translateZ(-60px) rotate(45deg); }
-    .diamond-top { transform: rotateX(90deg) translateZ(60px) rotate(45deg); }
-    .diamond-bottom { transform: rotateX(-90deg) translateZ(60px) rotate(45deg); }
+    .diamond-front { transform: translateZ(120px) rotate(45deg); }
+    .diamond-back { transform: translateZ(-120px) rotate(45deg); }
+    .diamond-top { transform: rotateX(90deg) translateZ(120px) rotate(45deg); }
+    .diamond-bottom { transform: rotateX(-90deg) translateZ(120px) rotate(45deg); }
 
     .terminal {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 140px;
-      height: 140px;
+      width: 220px;
+      height: 220px;
       transform: translate(-50%, -50%);
       background: rgba(8, 12, 18, 0.9);
       border: 1px solid rgba(120, 240, 255, 0.75);
