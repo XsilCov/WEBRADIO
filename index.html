@@ -4,20 +4,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DNBRADIO — Premium Live Wallpaper Experience</title>
+  <title>CABLE AND WIRELESS // DNB DIAGNOSIS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #05070a;
+      --bg: #000000;
+      --red: #ff3300;
+      --cyan: #00f3ff;
+      --blue-dark: #001a1a;
       --ink: #e2e8f0;
-      --ink-strong: #f8fafc;
-      --shadow: rgba(0, 0, 0, 0.8);
-      --accent: #00f3ff;
-      --accent-alt: #bc13fe;
-      --glass: rgba(255, 255, 255, 0.03);
-      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass: rgba(0, 243, 255, 0.05);
+      --glass-border: rgba(0, 243, 255, 0.2);
     }
 
     * {
@@ -35,31 +34,52 @@
     }
 
     body {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Roboto Mono', monospace;
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
+      background: radial-gradient(circle at center, #0a0000 0%, #000 100%);
     }
 
-    /* Live Wallpaper Container */
+    /* Scanline Effect */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      background-size: 100% 4px, 3px 100%;
+      z-index: 100;
+      pointer-events: none;
+      opacity: 0.3;
+    }
+
+    /* Noise/Grain */
+    #noise {
+      position: fixed;
+      inset: 0;
+      z-index: 99;
+      opacity: 0.03;
+      pointer-events: none;
+    }
+
     #wallpaper {
       position: fixed;
       inset: 0;
       z-index: -1;
-      background: radial-gradient(circle at center, #0d1117 0%, #05070a 100%);
+      opacity: 0.8;
+      filter: saturate(1.2) contrast(1.1);
     }
 
     #fluxCanvas {
       display: block;
       width: 100%;
       height: 100%;
-      filter: contrast(1.1) brightness(1.1);
     }
 
     .vignette {
       position: fixed;
       inset: 0;
       z-index: 1;
-      background: radial-gradient(circle at center, transparent 20%, rgba(0, 0, 0, 0.6) 100%);
+      background: radial-gradient(circle at center, transparent 10%, rgba(0, 0, 0, 0.8) 100%);
       pointer-events: none;
     }
 
@@ -67,338 +87,333 @@
       position: relative;
       z-index: 10;
       height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      gap: 30px;
-      animation: fadeIn 1.5s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 30px;
     }
 
     .header {
-      width: 100%;
-      max-width: 900px;
-      text-align: center;
+      border-bottom: 2px solid var(--red);
+      padding-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
       margin-bottom: 20px;
     }
 
     .header h1 {
-      font-size: clamp(36px, 10vw, 84px);
-      font-weight: 900;
+      font-size: 28px;
+      font-weight: 700;
       margin: 0;
+      color: var(--red);
       text-transform: uppercase;
-      letter-spacing: -3px;
-      line-height: 0.9;
-      background: linear-gradient(135deg, #00f3ff, #bc13fe, #ff00ea);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.3));
+      letter-spacing: 4px;
+      text-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
+    }
+
+    .header .tag {
+      font-size: 12px;
+      color: var(--cyan);
+      opacity: 0.8;
+      letter-spacing: 2px;
+    }
+
+    .main-grid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+    }
+
+    .hud-box {
+      border: 1px solid var(--glass-border);
+      background: rgba(0, 26, 26, 0.4);
+      padding: 20px;
+      backdrop-filter: blur(5px);
+      position: relative;
+      box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.1);
+    }
+
+    .hud-box::before {
+      content: "";
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      width: 15px;
+      height: 15px;
+      border-top: 2px solid var(--cyan);
+      border-left: 2px solid var(--cyan);
+    }
+
+    .hud-box::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 15px;
+      height: 15px;
+      border-bottom: 2px solid var(--cyan);
+      border-right: 2px solid var(--cyan);
+    }
+
+    .display-text {
+      font-size: 16px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
     }
 
     .controls {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
+      gap: 15px;
     }
 
     .btn {
-      width: 68px;
-      height: 68px;
-      border-radius: 20px;
-      border: 1px solid var(--glass-border);
-      background: var(--glass);
-      color: var(--ink);
+      width: 54px;
+      height: 54px;
+      background: transparent;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(16px);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: all 0.2s;
+      position: relative;
     }
 
     .btn:hover {
-      transform: translateY(-8px) scale(1.1);
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(0, 243, 255, 0.05);
-      box-shadow: 0 15px 45px rgba(0, 243, 255, 0.25);
+      background: var(--cyan);
+      color: var(--bg);
+      box-shadow: 0 0 15px var(--cyan);
     }
 
     .btn.play {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
-      color: #05070a;
-      box-shadow: 0 0 60px rgba(188, 19, 254, 0.4);
-      border: none;
+      width: 80px;
+      height: 80px;
+      border: 2px solid var(--red);
+      color: var(--red);
     }
 
     .btn.play:hover {
-      transform: scale(1.15) rotate(5deg);
-      box-shadow: 0 0 80px rgba(0, 243, 255, 0.6);
+      background: var(--red);
+      color: var(--bg);
+      box-shadow: 0 0 20px var(--red);
+    }
+
+    .stations {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .station {
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      color: var(--cyan);
+      padding: 10px;
+      font-size: 10px;
+      text-align: left;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: 0.2s;
+    }
+
+    .station.active {
+      background: var(--cyan);
+      color: var(--bg);
+      border-color: var(--cyan);
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--red);
+      border-top: 1px solid rgba(255, 51, 0, 0.2);
+      padding-top: 10px;
+    }
+
+    .terminal-mini {
+      width: 300px;
+      font-size: 11px;
+      color: var(--cyan);
+      line-height: 1.5;
+    }
+
+    .status-line {
+      display: flex;
+      background: rgba(0, 243, 255, 0.05);
+      margin-bottom: 2px;
+      padding: 2px 5px;
+    }
+
+    .status-line .label-val {
+      color: var(--red);
+      margin-right: 10px;
     }
 
     .range {
-      width: 150px;
-      height: 4px;
-      border-radius: 2px;
-      outline: none;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.1);
+      width: 100px;
       appearance: none;
-      margin-left: 10px;
+      background: var(--blue-dark);
+      height: 10px;
+      border: 1px solid var(--cyan);
     }
 
     .range::-webkit-slider-thumb {
       appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: var(--ink-strong);
-      box-shadow: 0 0 15px var(--accent);
-      border: 2px solid var(--accent);
-    }
-
-    .stations {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 600px;
-    }
-
-    .station {
-      padding: 12px 24px;
-      border-radius: 12px;
-      border: 1px solid var(--glass-border);
-      background: var(--glass);
-      color: var(--ink);
+      width: 20px;
+      height: 20px;
+      background: var(--red);
       cursor: pointer;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      backdrop-filter: blur(8px);
-      transition: all 0.3s;
     }
 
-    .station.active {
-      background: var(--accent);
-      color: #05070a;
-      box-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
-      border: none;
-    }
-
-    .station:hover:not(.active) {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--accent);
-    }
-
-    .eq-toggle {
-      padding: 10px 24px;
-      border-radius: 30px;
-      border: 1px solid rgba(0, 243, 255, 0.3);
-      background: transparent;
-      color: var(--accent);
-      font-weight: 900;
-      cursor: pointer;
-      transition: 0.3s;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .eq-toggle.active {
-      background: var(--accent);
-      color: #05070a;
-      box-shadow: 0 0 20px var(--accent);
-    }
-
-    .label {
-      font-size: 14px;
-      color: var(--accent);
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      opacity: 0.8;
-      margin-bottom: -10px;
-    }
-
-    .icon {
-      width: 32px;
-      height: 32px;
-    }
-
-    .icon.big {
-      width: 48px;
-      height: 48px;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    /* Glass Panels */
-    .terminal-mini {
+    .stamp {
       position: absolute;
-      bottom: 30px;
-      left: 30px;
-      width: 280px;
-      height: 140px;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(0, 243, 255, 0.2);
-      border-radius: 15px;
-      padding: 15px;
-      font-family: monospace;
-      font-size: 11px;
-      color: #00f3ff;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      top: 10%;
+      right: 5%;
+      width: 120px;
+      height: 120px;
+      border: 2px solid var(--cyan);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      text-align: center;
+      color: var(--cyan);
+      transform: rotate(15deg);
+      opacity: 0.4;
       pointer-events: none;
-      z-index: 5;
     }
 
-    @media (max-width: 640px) {
-      .header h1 {
-        font-size: 42px;
-      }
+    .stamp::before {
+      content: "FLEGRAPH\A CEATION";
+      white-space: pre;
+    }
 
-      .btn {
-        width: 55px;
-        height: 55px;
-      }
+    .map-frame {
+      position: absolute;
+      top: 15%;
+      left: 5%;
+      width: 300px;
+      height: 200px;
+      border: 1px solid rgba(255, 51, 0, 0.2);
+      opacity: 0.3;
+      pointer-events: none;
+    }
 
-      .btn.play {
-        width: 90px;
-        height: 90px;
-      }
+    @media (max-width: 768px) {
 
-      .terminal-mini {
+      .map-frame,
+      .stamp {
         display: none;
+      }
+
+      .ui {
+        padding: 15px;
+      }
+
+      .header h1 {
+        font-size: 18px;
       }
     }
   </style>
 </head>
 
 <body>
+  <div id="noise"></div>
   <div id="wallpaper">
     <canvas id="fluxCanvas"></canvas>
   </div>
   <div class="vignette"></div>
 
-  <aside class="terminal-mini">
-    <div style="color: #ff00ea; font-weight: bold; margin-bottom: 5px;">SYSTEM STATUS_</div>
-    <div id="statusLines"></div>
-  </aside>
+  <div class="map-frame">
+    <svg viewBox="0 0 800 400" fill="none" stroke="red" stroke-width="0.5" opacity="0.5">
+      <path d="M100,200 Q200,100 400,200 T700,200" />
+      <path d="M150,250 Q300,50 600,250" />
+      <circle cx="100" cy="200" r="2" fill="red" />
+      <circle cx="700" cy="200" r="2" fill="red" />
+    </svg>
+  </div>
+  <div class="stamp"></div>
 
   <div class="ui">
     <div class="header">
-      <h1>DRUM N BASS<br>DIAGNOSIS</h1>
+      <h1>CABLE AND WIRELESS LIMITED</h1>
+      <div class="tag">PORT OF SPAIN // STATUS: OPERATIONAL</div>
     </div>
 
-    <div class="controls">
-      <button id="muteBtn" class="btn" aria-label="Mute">
-        <svg id="iconVol" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-        </svg>
-        <svg id="iconMute" class="icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <line x1="23" y1="9" x2="17" y2="15"></line>
-          <line x1="17" y1="9" x2="23" y2="15"></line>
-        </svg>
-      </button>
+    <div class="main-grid">
+      <div class="hud-box" style="width: 100%; max-width: 500px;">
+        <div class="display-text" id="stationLabel">DTRB91/B POS 29 2 1743</div>
+        <div style="height: 2px; background: var(--cyan); width: 30%; margin-bottom: 15px;"></div>
 
-      <button id="tgBtn" class="btn" aria-label="Telegram">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <path d="m22 2-7 20-4-9-9-4Z" />
-          <path d="M22 2 11 13" />
-        </svg>
-      </button>
+        <div class="controls">
+          <button id="prevBtn" class="btn" aria-label="Previous">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" style="width:20px;">
+              <polygon points="19 20 9 12 19 4 19 20"></polygon>
+              <line x1="5" y1="19" x2="5" y2="5"></line>
+            </svg>
+          </button>
 
-      <button id="prevBtn" class="btn" aria-label="Previous">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <polygon points="19 20 9 12 19 4 19 20"></polygon>
-          <line x1="5" y1="19" x2="5" y2="5"></line>
-        </svg>
-      </button>
+          <button id="playBtn" class="btn play" aria-label="Play">
+            <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor" style="width:40px;">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <svg id="iconPause" class="hidden" viewBox="0 0 24 24" fill="currentColor" style="width:40px;">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+          </button>
 
-      <button id="playBtn" class="btn play" aria-label="Play">
-        <svg id="iconPlay" class="icon big" viewBox="0 0 24 24" fill="currentColor">
-          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg>
-        <svg id="iconPause" class="icon big hidden" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="4" width="4" height="16"></rect>
-          <rect x="14" y="4" width="4" height="16"></rect>
-        </svg>
-      </button>
+          <button id="nextBtn" class="btn" aria-label="Next">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" style="width:20px;">
+              <polygon points="5 4 15 12 5 20 5 4"></polygon>
+              <line x1="19" y1="5" x2="19" y2="19"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
 
-      <button id="nextBtn" class="btn" aria-label="Next">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <polygon points="5 4 15 12 5 20 5 4"></polygon>
-          <line x1="19" y1="5" x2="19" y2="19"></line>
-        </svg>
-      </button>
+      <div class="stations" id="stations"></div>
 
-      <button id="shareBtn" class="btn" aria-label="Share">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <circle cx="18" cy="5" r="3" />
-          <circle cx="6" cy="12" r="3" />
-          <circle cx="18" cy="19" r="3" />
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-        </svg>
-      </button>
-
-      <input id="volume" class="range" type="range" min="0" max="100" value="70" />
+      <div class="hud-box">
+        <div class="display-text">VOLUME CONTROL</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input id="volume" class="range" type="range" min="0" max="100" value="70" />
+          <button id="muteBtn" class="station" style="padding: 5px 10px;">MUTE</button>
+          <button id="eqToggle" class="station" style="padding: 5px 10px;">EQSYS</button>
+        </div>
+      </div>
     </div>
 
-    <div class="label" id="stationLabel">STATION: INITIALIZING...</div>
-
-    <button id="eqToggle" class="eq-toggle" type="button">EQ SYSTEM</button>
-
-    <div class="stations" id="stations"></div>
-
-    <div id="scWrap"
-      style="width: 100%; max-width: 640px; display: none; padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.5);">
-      <iframe id="scPlayer" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
-        title="SoundCloud"></iframe>
+    <div class="footer">
+      <div class="terminal-mini" id="statusLines"></div>
+      <div style="text-align: right;">
+        2041 SEP 3 - 16 45.45<br>
+        MURIEL LESTER // NYC
+      </div>
     </div>
 
-    <div id="dzWrap"
-      style="width: 100%; max-width: 640px; display: none; padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.5);">
-      <iframe id="dzPlayer" width="100%" height="210" frameborder="0" allow="autoplay; encrypted-media"
-        title="Deezer"></iframe>
-    </div>
+    <!-- Hidden Wrappers -->
+    <div id="scWrap" style="display: none;"><iframe id="scPlayer"></iframe></div>
+    <div id="dzWrap" style="display: none;"><iframe id="dzPlayer"></iframe></div>
   </div>
 
   <audio id="audio" crossorigin="anonymous"></audio>
 
   <script>
-    // Neon Wallpaper logic
+    // HUD Animation Wallpaper
     const canvas = document.getElementById('fluxCanvas');
     const ctx = canvas.getContext('2d');
     let w, h, particles = [];
@@ -413,103 +428,125 @@
       reset() {
         this.x = Math.random() * w;
         this.y = Math.random() * h;
-        this.size = Math.random() * 2 + 0.5;
-        this.vx = (Math.random() - 0.5) * 0.4;
-        this.vy = (Math.random() - 0.5) * 0.4;
-        this.alpha = Math.random() * 0.5 + 0.1;
-        this.hue = Math.random() > 0.5 ? 180 : 280;
+        this.size = Math.random() * 2;
+        this.vx = (Math.random() - 0.5) * 0.2;
+        this.vy = (Math.random() - 0.5) * 0.2;
+        this.color = Math.random() > 0.8 ? '#ff3300' : '#00f3ff';
+        this.alpha = Math.random();
       }
       update() {
         this.x += this.vx; this.y += this.vy;
         if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
       }
       draw() {
-        ctx.fillStyle = `hsla(${this.hue}, 100%, 70%, ${this.alpha})`;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.alpha * 0.3;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
       }
     }
 
-    function initWallpaper() {
+    function init() {
       resize();
       particles = [];
-      for (let i = 0; i < 150; i++) particles.push(new Particle());
+      for (let i = 0; i < 100; i++) particles.push(new Particle());
+      loop();
     }
 
-    function animateWallpaper() {
-      ctx.fillStyle = 'rgba(5, 7, 10, 0.15)';
+    function loop() {
+      ctx.fillStyle = '#000';
+      ctx.globalAlpha = 0.1;
       ctx.fillRect(0, 0, w, h);
-
       particles.forEach(p => { p.update(); p.draw(); });
 
-      ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+      // Horizontal Scan Line
+      ctx.strokeStyle = '#00f3ff';
+      ctx.globalAlpha = 0.05;
       ctx.lineWidth = 1;
-      for (let i = 0; i < 4; i++) {
-        ctx.beginPath();
-        const y = (h / 5) * (i + 1) + Math.sin(Date.now() * 0.001 + i) * 80;
-        ctx.moveTo(0, y);
-        ctx.bezierCurveTo(w / 3, y + 100, w / 1.5, y - 100, w, y);
-        ctx.stroke();
-      }
-      requestAnimationFrame(animateWallpaper);
-    }
-    window.addEventListener('resize', initWallpaper);
-    initWallpaper();
-    animateWallpaper();
+      const scanY = (Date.now() % 5000) / 5000 * h;
+      ctx.beginPath(); ctx.moveTo(0, scanY); ctx.lineTo(w, scanY); ctx.stroke();
 
-    // Radio logic
+      requestAnimationFrame(loop);
+    }
+    window.addEventListener('resize', resize);
+    init();
+
+    // Radio Logic
     const stations = [
       { name: 'BASSDRIVE', type: 'stream', url: 'http://streams.bassdrive.com:8000/' },
       { name: 'DNBRADIO', type: 'stream', url: 'https://dnbradio.com/hi.mp3' },
-      { name: 'KYKY-A', type: 'soundcloud', url: 'https://soundcloud.com/xsilofon/sets/kyky-a' },
-      { name: 'TECHNO VIP', type: 'deezer', id: '1275756721' },
-      { name: 'TECHNO LIVE', type: 'stream', url: 'https://jazz-wr11.ice.infomaniak.ch/jazz-wr11-128.mp3' }
+      { name: 'TECHNO LIVE', type: 'stream', url: 'https://jazz-wr11.ice.infomaniak.ch/jazz-wr11-128.mp3' },
+      { name: 'KYKY-A', type: 'soundcloud', url: 'https://soundcloud.com/xsilofon/sets/kyky-a' }
     ];
 
     const audio = document.getElementById('audio');
     const playBtn = document.getElementById('playBtn');
-    const muteBtn = document.getElementById('muteBtn');
-    const tgBtn = document.getElementById('tgBtn');
-    const shareBtn = document.getElementById('shareBtn');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
     const volumeEl = document.getElementById('volume');
     const stationsEl = document.getElementById('stations');
     const stationLabel = document.getElementById('stationLabel');
-    const eqToggle = document.getElementById('eqToggle');
     const statusLines = document.getElementById('statusLines');
-
-    let currentStation = 0;
-    let isPlaying = false;
-    let isMuted = false;
-    let eqEnabled = false;
-    let audioContext = null, sourceNode = null, eqFilters = [];
+    let currentStation = 0, isPlaying = false, eqEnabled = false;
+    let audioContext, sourceNode, eqFilters = [];
 
     function updateTerminal() {
       const lines = [
-        `> STREAM: ${stations[currentStation].name}`,
-        `> STATE: ${isPlaying ? 'PLAYING' : 'READY'}`,
-        `> VOLUME: ${volumeEl.value}%`,
-        `> EQ: ${eqEnabled ? 'ACTIVE' : 'BYPASS'}`,
-        `> LINK: ${window.location.hostname}`
+        `> DATA_STREAM: ${stations[currentStation].name}`,
+        `> POS_COORDS: 10-418 // 289`,
+        `> FREQ_RESPONSE: ${eqEnabled ? 'ENHANCED' : 'DIRECT'}`,
+        `> SIGNAL: OPERATIONAL`
       ];
-      statusLines.innerHTML = lines.map(line => `<div>${line}</div>`).join('');
+      statusLines.innerHTML = lines.map(l => `<div class="status-line"><span class="label-val">[OK]</span> ${l}</div>`).join('');
     }
 
     function buildEq(ctx) {
-      return [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000].map(freq => {
-        const f = ctx.createBiquadFilter();
-        f.type = 'peaking'; f.frequency.value = freq; f.Q.value = 1; f.gain.value = 0;
-        return f;
+      return [60, 250, 1000, 4000, 12000].map(f => {
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'peaking'; filter.frequency.value = f; filter.gain.value = 0;
+        return filter;
       });
     }
 
-    function connectEq() {
-      if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      if (!sourceNode) sourceNode = audioContext.createMediaElementSource(audio);
-      if (eqFilters.length === 0) eqFilters = buildEq(audioContext);
+    function setStation(i) {
+      currentStation = i;
+      const s = stations[i];
+      if (s.type === 'stream') {
+        audio.src = s.url; audio.load();
+        if (isPlaying) audio.play();
+        if (audioContext) connectEq();
+      }
+      stationLabel.textContent = `DTRB91/B // ${s.name}`;
+      renderStations();
+      updateTerminal();
+    }
 
+    function renderStations() {
+      stationsEl.innerHTML = '';
+      stations.forEach((s, i) => {
+        const d = document.createElement('div');
+        d.className = `station ${i === currentStation ? 'active' : ''}`;
+        d.textContent = s.name;
+        d.onclick = () => setStation(i);
+        stationsEl.appendChild(d);
+      });
+    }
+
+    playBtn.onclick = () => {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        sourceNode = audioContext.createMediaElementSource(audio);
+        eqFilters = buildEq(audioContext);
+        connectEq();
+      }
+      if (audio.paused) {
+        audio.play(); isPlaying = true;
+      } else {
+        audio.pause(); isPlaying = false;
+      }
+      document.getElementById('iconPlay').classList.toggle('hidden', isPlaying);
+      document.getElementById('iconPause').classList.toggle('hidden', !isPlaying);
+      updateTerminal();
+    };
+
+    function connectEq() {
       sourceNode.disconnect();
       eqFilters.forEach(f => f.disconnect());
       if (eqEnabled) {
@@ -521,92 +558,19 @@
       }
     }
 
-    function setStation(index) {
-      currentStation = index;
-      const s = stations[index];
-      const scWrap = document.getElementById('scWrap');
-      const dzWrap = document.getElementById('dzWrap');
-
-      scWrap.style.display = s.type === 'soundcloud' ? 'block' : 'none';
-      dzWrap.style.display = s.type === 'deezer' ? 'block' : 'none';
-
-      if (s.type === 'soundcloud') {
-        audio.pause(); isPlaying = false;
-        document.getElementById('scPlayer').src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(s.url)}&color=%2300f3ff&auto_play=true`;
-      } else if (s.type === 'deezer') {
-        audio.pause(); isPlaying = false;
-        document.getElementById('dzPlayer').src = `https://widget.deezer.com/widget/dark/playlist/${s.id}`;
-      } else {
-        audio.src = s.url; audio.load();
-        if (isPlaying) audio.play();
-        connectEq();
-      }
-
-      stationLabel.textContent = `STATION: ${s.name}`;
-      updateStationsUI();
-      updateTerminal();
-    }
-
-    function updateStationsUI() {
-      stationsEl.innerHTML = '';
-      stations.forEach((s, i) => {
-        const btn = document.createElement('button');
-        btn.className = `station ${i === currentStation ? 'active' : ''}`;
-        btn.textContent = s.name;
-        btn.onclick = () => setStation(i);
-        stationsEl.appendChild(btn);
-      });
-    }
-
-    playBtn.onclick = () => {
-      if (stations[currentStation].type !== 'stream') return;
-      if (audio.paused) {
-        audio.play().then(() => { isPlaying = true; updateUI(); });
-      } else {
-        audio.pause(); isPlaying = false; updateUI();
-      }
-    };
-
-    function updateUI() {
-      document.getElementById('iconPlay').classList.toggle('hidden', isPlaying);
-      document.getElementById('iconPause').classList.toggle('hidden', !isPlaying);
-      updateTerminal();
-    }
-
-    muteBtn.onclick = () => {
-      audio.muted = !audio.muted;
-      isMuted = audio.muted;
-      document.getElementById('iconVol').classList.toggle('hidden', isMuted);
-      document.getElementById('iconMute').classList.toggle('hidden', !isMuted);
-    };
-
-    prevBtn.onclick = () => setStation((currentStation - 1 + stations.length) % stations.length);
-    nextBtn.onclick = () => setStation((currentStation + 1) % stations.length);
-
-    volumeEl.oninput = (e) => {
-      const v = e.target.value / 100;
-      audio.volume = v;
-      updateTerminal();
-    };
-
-    tgBtn.onclick = () => window.open('https://t.me/qwqwqqww', '_blank');
-    shareBtn.onclick = async () => {
-      const url = window.location.href.split('?')[0];
-      if (navigator.share) {
-        await navigator.share({ title: 'DNBRADIO', url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        stationLabel.textContent = 'LINK COPIED!';
-        setTimeout(() => stationLabel.textContent = `STATION: ${stations[currentStation].name}`, 2000);
-      }
-    };
-
-    eqToggle.onclick = () => {
+    document.getElementById('eqToggle').onclick = (e) => {
       eqEnabled = !eqEnabled;
-      eqToggle.classList.toggle('active', eqEnabled);
-      if (stations[currentStation].type === 'stream') connectEq();
+      e.target.classList.toggle('active', eqEnabled);
+      if (audioContext) connectEq();
       updateTerminal();
     };
+
+    document.getElementById('muteBtn').onclick = (e) => {
+      audio.muted = !audio.muted;
+      e.target.classList.toggle('active', audio.muted);
+    };
+
+    volumeEl.oninput = (e) => { audio.volume = e.target.value / 100; updateTerminal(); };
 
     setStation(0);
   </script>
