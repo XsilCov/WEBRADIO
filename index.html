@@ -4,19 +4,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CABLE AND WIRELESS // DNB DIAGNOSIS</title>
+  <title>DNBRADIO — Premium HUD Experience</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&family=Roboto+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
   <style>
     :root {
-      --bg: #000000;
-      --red: #ff3300;
-      --cyan: #00f3ff;
-      --blue-dark: #001a1a;
+      --bg: #05070a;
       --ink: #e2e8f0;
-      --glass: rgba(0, 243, 255, 0.05);
-      --glass-border: rgba(0, 243, 255, 0.2);
+      --ink-strong: #f8fafc;
+      --shadow: rgba(0, 0, 0, 0.8);
+      --accent: #00f3ff;
+      --accent-alt: #bc13fe;
+      --red: #ff3300;
+      --glass: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.1);
     }
 
     * {
@@ -34,52 +38,54 @@
     }
 
     body {
-      font-family: 'Roboto Mono', monospace;
+      font-family: 'Outfit', sans-serif;
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
-      background: radial-gradient(circle at center, #0a0000 0%, #000 100%);
     }
 
-    /* Scanline Effect */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-      background-size: 100% 4px, 3px 100%;
-      z-index: 100;
-      pointer-events: none;
-      opacity: 0.3;
-    }
-
-    /* Noise/Grain */
-    #noise {
-      position: fixed;
-      inset: 0;
-      z-index: 99;
-      opacity: 0.03;
-      pointer-events: none;
-    }
-
+    /* Background HUD Layers */
     #wallpaper {
       position: fixed;
       inset: 0;
       z-index: -1;
-      opacity: 0.8;
-      filter: saturate(1.2) contrast(1.1);
+      background: #05070a;
     }
 
     #fluxCanvas {
       display: block;
       width: 100%;
       height: 100%;
+      filter: contrast(1.1) brightness(1.2);
+    }
+
+    .hud-overlay {
+      position: fixed;
+      inset: 30px;
+      border: 1px solid rgba(0, 243, 255, 0.05);
+      z-index: 1;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(255, 51, 0, 0.03) 1px, transparent 1px) 0 0 / 100px 100px,
+        linear-gradient(rgba(255, 51, 0, 0.03) 1px, transparent 1px) 0 0 / 100px 100px;
+    }
+
+    .hud-map {
+      position: fixed;
+      top: 10%;
+      left: 10%;
+      width: 40%;
+      height: 40%;
+      z-index: 1;
+      opacity: 0.15;
+      pointer-events: none;
+      filter: drop-shadow(0 0 10px rgba(255, 51, 0, 0.4));
     }
 
     .vignette {
       position: fixed;
       inset: 0;
-      z-index: 1;
-      background: radial-gradient(circle at center, transparent 10%, rgba(0, 0, 0, 0.8) 100%);
+      z-index: 2;
+      background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.7) 100%);
       pointer-events: none;
     }
 
@@ -87,333 +93,316 @@
       position: relative;
       z-index: 10;
       height: 100vh;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      padding: 30px;
-    }
-
-    .header {
-      border-bottom: 2px solid var(--red);
-      padding-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 20px;
-    }
-
-    .header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0;
-      color: var(--red);
-      text-transform: uppercase;
-      letter-spacing: 4px;
-      text-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
-    }
-
-    .header .tag {
-      font-size: 12px;
-      color: var(--cyan);
-      opacity: 0.8;
-      letter-spacing: 2px;
-    }
-
-    .main-grid {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 40px;
-    }
-
-    .hud-box {
-      border: 1px solid var(--glass-border);
-      background: rgba(0, 26, 26, 0.4);
       padding: 20px;
-      backdrop-filter: blur(5px);
-      position: relative;
-      box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.1);
+      gap: 30px;
     }
 
-    .hud-box::before {
-      content: "";
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      width: 15px;
-      height: 15px;
-      border-top: 2px solid var(--cyan);
-      border-left: 2px solid var(--cyan);
+    .header {
+      width: 100%;
+      max-width: 900px;
+      text-align: center;
+      margin-bottom: 20px;
     }
 
-    .hud-box::after {
-      content: "";
-      position: absolute;
-      bottom: -2px;
-      right: -2px;
-      width: 15px;
-      height: 15px;
-      border-bottom: 2px solid var(--cyan);
-      border-right: 2px solid var(--cyan);
-    }
-
-    .display-text {
-      font-size: 16px;
-      color: var(--cyan);
+    .header h1 {
+      font-size: clamp(36px, 9vw, 84px);
+      font-weight: 900;
+      margin: 0;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 5px;
+      letter-spacing: -2px;
+      line-height: 0.9;
+      background: linear-gradient(135deg, var(--accent), var(--accent-alt), var(--red));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.4));
     }
 
     .controls {
       display: flex;
       align-items: center;
-      gap: 15px;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
     }
 
     .btn {
-      width: 54px;
-      height: 54px;
-      background: transparent;
-      border: 1px solid var(--cyan);
-      color: var(--cyan);
+      width: 68px;
+      height: 68px;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--ink);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
-      position: relative;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(16px);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .btn:hover {
-      background: var(--cyan);
-      color: var(--bg);
-      box-shadow: 0 0 15px var(--cyan);
+      transform: translateY(-8px) scale(1.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 15px 45px rgba(0, 243, 255, 0.25);
     }
 
     .btn.play {
-      width: 80px;
-      height: 80px;
-      border: 2px solid var(--red);
-      color: var(--red);
-    }
-
-    .btn.play:hover {
-      background: var(--red);
-      color: var(--bg);
-      box-shadow: 0 0 20px var(--red);
-    }
-
-    .stations {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .station {
-      background: rgba(0, 243, 255, 0.1);
-      border: 1px solid var(--glass-border);
-      color: var(--cyan);
-      padding: 10px;
-      font-size: 10px;
-      text-align: left;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: 0.2s;
-    }
-
-    .station.active {
-      background: var(--cyan);
-      color: var(--bg);
-      border-color: var(--cyan);
-    }
-
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 10px;
-      color: var(--red);
-      border-top: 1px solid rgba(255, 51, 0, 0.2);
-      padding-top: 10px;
-    }
-
-    .terminal-mini {
-      width: 300px;
-      font-size: 11px;
-      color: var(--cyan);
-      line-height: 1.5;
-    }
-
-    .status-line {
-      display: flex;
-      background: rgba(0, 243, 255, 0.05);
-      margin-bottom: 2px;
-      padding: 2px 5px;
-    }
-
-    .status-line .label-val {
-      color: var(--red);
-      margin-right: 10px;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+      color: #05070a;
+      box-shadow: 0 0 60px rgba(188, 19, 254, 0.4);
+      border: none;
     }
 
     .range {
-      width: 100px;
+      width: 160px;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.1);
       appearance: none;
-      background: var(--blue-dark);
-      height: 10px;
-      border: 1px solid var(--cyan);
     }
 
     .range::-webkit-slider-thumb {
       appearance: none;
-      width: 20px;
-      height: 20px;
-      background: var(--red);
-      cursor: pointer;
-    }
-
-    .stamp {
-      position: absolute;
-      top: 10%;
-      right: 5%;
-      width: 120px;
-      height: 120px;
-      border: 2px solid var(--cyan);
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
+      background: var(--ink-strong);
+      box-shadow: 0 0 15px var(--accent);
+      border: 2px solid var(--accent);
+    }
+
+    .stations {
       display: flex;
-      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
       justify-content: center;
-      font-size: 10px;
-      text-align: center;
-      color: var(--cyan);
-      transform: rotate(15deg);
-      opacity: 0.4;
-      pointer-events: none;
     }
 
-    .stamp::before {
-      content: "FLEGRAPH\A CEATION";
-      white-space: pre;
+    .station {
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      transition: all 0.3s;
     }
 
-    .map-frame {
+    .station.active {
+      background: var(--accent);
+      color: #05070a;
+      box-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+      border: none;
+    }
+
+    .eq-toggle {
+      padding: 10px 24px;
+      border-radius: 30px;
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      background: transparent;
+      color: var(--accent);
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .eq-toggle.active {
+      background: var(--accent);
+      color: #05070a;
+    }
+
+    .label {
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      opacity: 0.8;
+    }
+
+    .icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .icon.big {
+      width: 48px;
+      height: 48px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Glass Panels */
+    .terminal-mini {
       position: absolute;
-      top: 15%;
-      left: 5%;
+      bottom: 40px;
+      left: 40px;
       width: 300px;
-      height: 200px;
-      border: 1px solid rgba(255, 51, 0, 0.2);
-      opacity: 0.3;
-      pointer-events: none;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      border-radius: 12px;
+      padding: 15px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      backdrop-filter: blur(10px);
+      z-index: 5;
     }
 
-    @media (max-width: 768px) {
-
-      .map-frame,
-      .stamp {
-        display: none;
-      }
-
-      .ui {
-        padding: 15px;
-      }
-
+    @media (max-width: 640px) {
       .header h1 {
-        font-size: 18px;
+        font-size: 42px;
+      }
+
+      .btn {
+        width: 55px;
+        height: 55px;
+      }
+
+      .btn.play {
+        width: 95px;
+        height: 95px;
+      }
+
+      .terminal-mini,
+      .hud-map {
+        display: none;
       }
     }
   </style>
 </head>
 
 <body>
-  <div id="noise"></div>
   <div id="wallpaper">
     <canvas id="fluxCanvas"></canvas>
   </div>
-  <div class="vignette"></div>
-
-  <div class="map-frame">
-    <svg viewBox="0 0 800 400" fill="none" stroke="red" stroke-width="0.5" opacity="0.5">
-      <path d="M100,200 Q200,100 400,200 T700,200" />
-      <path d="M150,250 Q300,50 600,250" />
-      <circle cx="100" cy="200" r="2" fill="red" />
-      <circle cx="700" cy="200" r="2" fill="red" />
+  <div class="hud-overlay"></div>
+  <div class="hud-map">
+    <svg viewBox="0 0 800 400" fill="none" stroke="currentColor" style="color: var(--red); opacity: 0.8;">
+      <path stroke-width="0.5"
+        d="M100,200 Q200,100 400,200 T700,200 M150,250 Q300,50 600,250 M120,180 L180,240 M680,180 L620,240" />
+      <circle cx="100" cy="200" r="3" fill="currentColor" />
+      <circle cx="700" cy="200" r="3" fill="currentColor" />
+      <text x="20" y="40" fill="currentColor" font-family="monospace" font-size="20">CGA.7 PORT OF SPAIN</text>
     </svg>
   </div>
-  <div class="stamp"></div>
+  <div class="vignette"></div>
+
+  <aside class="terminal-mini">
+    <div style="color: var(--red); font-weight: bold; margin-bottom: 8px;">SIGNAL_DIAGNOSIS_</div>
+    <div id="statusLines"></div>
+  </aside>
 
   <div class="ui">
     <div class="header">
-      <h1>CABLE AND WIRELESS LIMITED</h1>
-      <div class="tag">PORT OF SPAIN // STATUS: OPERATIONAL</div>
+      <h1>DRUM N BASS<br>DIAGNOSIS</h1>
     </div>
 
-    <div class="main-grid">
-      <div class="hud-box" style="width: 100%; max-width: 500px;">
-        <div class="display-text" id="stationLabel">DTRB91/B POS 29 2 1743</div>
-        <div style="height: 2px; background: var(--cyan); width: 30%; margin-bottom: 15px;"></div>
+    <div class="controls">
+      <button id="muteBtn" class="btn" aria-label="Mute">
+        <svg id="iconVol" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+        <svg id="iconMute" class="icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+      </button>
 
-        <div class="controls">
-          <button id="prevBtn" class="btn" aria-label="Previous">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round" style="width:20px;">
-              <polygon points="19 20 9 12 19 4 19 20"></polygon>
-              <line x1="5" y1="19" x2="5" y2="5"></line>
-            </svg>
-          </button>
+      <button id="tgBtn" class="btn" aria-label="Telegram">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="m22 2-7 20-4-9-9-4Z" />
+          <path d="M22 2 11 13" />
+        </svg>
+      </button>
 
-          <button id="playBtn" class="btn play" aria-label="Play">
-            <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor" style="width:40px;">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-            <svg id="iconPause" class="hidden" viewBox="0 0 24 24" fill="currentColor" style="width:40px;">
-              <rect x="6" y="4" width="4" height="16"></rect>
-              <rect x="14" y="4" width="4" height="16"></rect>
-            </svg>
-          </button>
+      <button id="prevBtn" class="btn" aria-label="Previous">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polygon points="19 20 9 12 19 4 19 20"></polygon>
+          <line x1="5" y1="19" x2="5" y2="5"></line>
+        </svg>
+      </button>
 
-          <button id="nextBtn" class="btn" aria-label="Next">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round" style="width:20px;">
-              <polygon points="5 4 15 12 5 20 5 4"></polygon>
-              <line x1="19" y1="5" x2="19" y2="19"></line>
-            </svg>
-          </button>
-        </div>
-      </div>
+      <button id="playBtn" class="btn play" aria-label="Play">
+        <svg id="iconPlay" class="icon big" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <svg id="iconPause" class="icon big hidden" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="4" width="4" height="16"></rect>
+          <rect x="14" y="4" width="4" height="16"></rect>
+        </svg>
+      </button>
 
-      <div class="stations" id="stations"></div>
+      <button id="nextBtn" class="btn" aria-label="Next">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polygon points="5 4 15 12 5 20 5 4"></polygon>
+          <line x1="19" y1="5" x2="19" y2="19"></line>
+        </svg>
+      </button>
 
-      <div class="hud-box">
-        <div class="display-text">VOLUME CONTROL</div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <input id="volume" class="range" type="range" min="0" max="100" value="70" />
-          <button id="muteBtn" class="station" style="padding: 5px 10px;">MUTE</button>
-          <button id="eqToggle" class="station" style="padding: 5px 10px;">EQSYS</button>
-        </div>
-      </div>
+      <button id="shareBtn" class="btn" aria-label="Share">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+      </button>
+
+      <input id="volume" class="range" type="range" min="0" max="100" value="70" />
     </div>
 
-    <div class="footer">
-      <div class="terminal-mini" id="statusLines"></div>
-      <div style="text-align: right;">
-        2041 SEP 3 - 16 45.45<br>
-        MURIEL LESTER // NYC
-      </div>
+    <div class="label" id="stationLabel">STATION: INITIALIZING...</div>
+
+    <button id="eqToggle" class="eq-toggle" type="button">EQ SYSTEM</button>
+
+    <div class="stations" id="stations"></div>
+
+    <div id="scWrap"
+      style="width: 100%; max-width: 640px; display: none; padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.5);">
+      <iframe id="scPlayer" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
+        title="SoundCloud"></iframe>
     </div>
 
-    <!-- Hidden Wrappers -->
-    <div id="scWrap" style="display: none;"><iframe id="scPlayer"></iframe></div>
-    <div id="dzWrap" style="display: none;"><iframe id="dzPlayer"></iframe></div>
+    <div id="dzWrap"
+      style="width: 100%; max-width: 640px; display: none; padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.5);">
+      <iframe id="dzPlayer" width="100%" height="210" frameborder="0" allow="autoplay; encrypted-media"
+        title="Deezer"></iframe>
+    </div>
   </div>
 
   <audio id="audio" crossorigin="anonymous"></audio>
 
   <script>
-    // HUD Animation Wallpaper
+    // HUD Neon Wallpaper logic
     const canvas = document.getElementById('fluxCanvas');
     const ctx = canvas.getContext('2d');
     let w, h, particles = [];
@@ -429,53 +418,46 @@
         this.x = Math.random() * w;
         this.y = Math.random() * h;
         this.size = Math.random() * 2;
-        this.vx = (Math.random() - 0.5) * 0.2;
-        this.vy = (Math.random() - 0.5) * 0.2;
-        this.color = Math.random() > 0.8 ? '#ff3300' : '#00f3ff';
-        this.alpha = Math.random();
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.4;
+        this.alpha = Math.random() * 0.6 + 0.1;
+        this.hue = Math.random() > 0.7 ? 0 : 180; // Red or Cyan
       }
       update() {
         this.x += this.vx; this.y += this.vy;
         if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
       }
       draw() {
-        ctx.fillStyle = this.color;
-        ctx.globalAlpha = this.alpha * 0.3;
-        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.fillStyle = `hsla(${this.hue}, 100%, 70%, ${this.alpha})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
-    function init() {
+    function initWallpaper() {
       resize();
       particles = [];
-      for (let i = 0; i < 100; i++) particles.push(new Particle());
-      loop();
+      for (let i = 0; i < 120; i++) particles.push(new Particle());
     }
 
-    function loop() {
-      ctx.fillStyle = '#000';
-      ctx.globalAlpha = 0.1;
+    function animateWallpaper() {
+      ctx.fillStyle = 'rgba(5, 7, 10, 0.15)';
       ctx.fillRect(0, 0, w, h);
       particles.forEach(p => { p.update(); p.draw(); });
-
-      // Horizontal Scan Line
-      ctx.strokeStyle = '#00f3ff';
-      ctx.globalAlpha = 0.05;
-      ctx.lineWidth = 1;
-      const scanY = (Date.now() % 5000) / 5000 * h;
-      ctx.beginPath(); ctx.moveTo(0, scanY); ctx.lineTo(w, scanY); ctx.stroke();
-
-      requestAnimationFrame(loop);
+      requestAnimationFrame(animateWallpaper);
     }
-    window.addEventListener('resize', resize);
-    init();
+    window.addEventListener('resize', initWallpaper);
+    initWallpaper();
+    animateWallpaper();
 
-    // Radio Logic
+    // Radio logic
     const stations = [
       { name: 'BASSDRIVE', type: 'stream', url: 'http://streams.bassdrive.com:8000/' },
       { name: 'DNBRADIO', type: 'stream', url: 'https://dnbradio.com/hi.mp3' },
-      { name: 'TECHNO LIVE', type: 'stream', url: 'https://jazz-wr11.ice.infomaniak.ch/jazz-wr11-128.mp3' },
-      { name: 'KYKY-A', type: 'soundcloud', url: 'https://soundcloud.com/xsilofon/sets/kyky-a' }
+      { name: 'KYKY-A', type: 'soundcloud', url: 'https://soundcloud.com/xsilofon/sets/kyky-a' },
+      { name: 'TECHNO VIP', type: 'deezer', id: '1275756721' },
+      { name: 'TECHNO LIVE', type: 'stream', url: 'https://jazz-wr11.ice.infomaniak.ch/jazz-wr11-128.mp3' }
     ];
 
     const audio = document.getElementById('audio');
@@ -485,92 +467,70 @@
     const stationLabel = document.getElementById('stationLabel');
     const statusLines = document.getElementById('statusLines');
     let currentStation = 0, isPlaying = false, eqEnabled = false;
-    let audioContext, sourceNode, eqFilters = [];
 
     function updateTerminal() {
       const lines = [
         `> DATA_STREAM: ${stations[currentStation].name}`,
-        `> POS_COORDS: 10-418 // 289`,
-        `> FREQ_RESPONSE: ${eqEnabled ? 'ENHANCED' : 'DIRECT'}`,
+        `> STATE: ${isPlaying ? 'ACTIVE' : 'READY'}`,
+        `> HUD_POS: 29.2 // 1743`,
+        `> EQ_SYSTEM: ${eqEnabled ? 'ON' : 'OFF'}`,
         `> SIGNAL: OPERATIONAL`
       ];
-      statusLines.innerHTML = lines.map(l => `<div class="status-line"><span class="label-val">[OK]</span> ${l}</div>`).join('');
+      statusLines.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
     }
 
-    function buildEq(ctx) {
-      return [60, 250, 1000, 4000, 12000].map(f => {
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'peaking'; filter.frequency.value = f; filter.gain.value = 0;
-        return filter;
-      });
-    }
-
-    function setStation(i) {
-      currentStation = i;
-      const s = stations[i];
+    function setStation(index) {
+      currentStation = index;
+      const s = stations[index];
       if (s.type === 'stream') {
         audio.src = s.url; audio.load();
         if (isPlaying) audio.play();
-        if (audioContext) connectEq();
       }
-      stationLabel.textContent = `DTRB91/B // ${s.name}`;
-      renderStations();
+      stationLabel.textContent = `STATION: ${s.name}`;
+      updateStationsUI();
       updateTerminal();
     }
 
-    function renderStations() {
+    function updateStationsUI() {
       stationsEl.innerHTML = '';
       stations.forEach((s, i) => {
-        const d = document.createElement('div');
-        d.className = `station ${i === currentStation ? 'active' : ''}`;
-        d.textContent = s.name;
-        d.onclick = () => setStation(i);
-        stationsEl.appendChild(d);
+        const btn = document.createElement('button');
+        btn.className = `station ${i === currentStation ? 'active' : ''}`;
+        btn.textContent = s.name;
+        btn.onclick = () => setStation(i);
+        stationsEl.appendChild(btn);
       });
     }
 
     playBtn.onclick = () => {
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        sourceNode = audioContext.createMediaElementSource(audio);
-        eqFilters = buildEq(audioContext);
-        connectEq();
-      }
       if (audio.paused) {
-        audio.play(); isPlaying = true;
+        audio.play().then(() => { isPlaying = true; updateUI(); });
       } else {
-        audio.pause(); isPlaying = false;
+        audio.pause(); isPlaying = false; updateUI();
       }
+    };
+
+    function updateUI() {
       document.getElementById('iconPlay').classList.toggle('hidden', isPlaying);
       document.getElementById('iconPause').classList.toggle('hidden', !isPlaying);
       updateTerminal();
-    };
-
-    function connectEq() {
-      sourceNode.disconnect();
-      eqFilters.forEach(f => f.disconnect());
-      if (eqEnabled) {
-        sourceNode.connect(eqFilters[0]);
-        for (let i = 0; i < eqFilters.length - 1; i++) eqFilters[i].connect(eqFilters[i + 1]);
-        eqFilters[eqFilters.length - 1].connect(audioContext.destination);
-      } else {
-        sourceNode.connect(audioContext.destination);
-      }
     }
 
-    document.getElementById('eqToggle').onclick = (e) => {
+    document.getElementById('muteBtn').onclick = () => {
+      audio.muted = !audio.muted;
+      document.getElementById('iconVol').classList.toggle('hidden', audio.muted);
+      document.getElementById('iconMute').classList.toggle('hidden', !audio.muted);
+    };
+
+    document.getElementById('prevBtn').onclick = () => setStation((currentStation - 1 + stations.length) % stations.length);
+    document.getElementById('nextBtn').onclick = () => setStation((currentStation + 1) % stations.length);
+    volumeEl.oninput = (e) => audio.volume = e.target.value / 100;
+
+    document.getElementById('eqToggle').onclick = () => {
       eqEnabled = !eqEnabled;
-      e.target.classList.toggle('active', eqEnabled);
-      if (audioContext) connectEq();
+      document.getElementById('eqToggle').classList.toggle('active', eqEnabled);
       updateTerminal();
     };
-
-    document.getElementById('muteBtn').onclick = (e) => {
-      audio.muted = !audio.muted;
-      e.target.classList.toggle('active', audio.muted);
-    };
-
-    volumeEl.oninput = (e) => { audio.volume = e.target.value / 100; updateTerminal(); };
 
     setStation(0);
   </script>
