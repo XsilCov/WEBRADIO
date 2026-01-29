@@ -4,14 +4,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DNBRADIO — онлайн прослуховування</title>
+  <title>DNBRADIO — Premium Live Wallpaper Experience</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #3a3f46;
-      --ink: #d6d9df;
-      --ink-strong: #c4c8cf;
-      --shadow: rgba(0, 0, 0, 0.45);
-      --accent: #9ca3af;
+      --bg: #05070a;
+      --ink: #e2e8f0;
+      --ink-strong: #f8fafc;
+      --shadow: rgba(0, 0, 0, 0.8);
+      --accent: #00f3ff;
+      --accent-alt: #bc13fe;
+      --glass: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.1);
     }
 
     * {
@@ -21,190 +27,40 @@
     html,
     body {
       height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      overflow: hidden;
     }
 
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background:
-        radial-gradient(900px 520px at 15% -10%, rgba(80, 110, 160, 0.22) 0%, transparent 60%),
-        radial-gradient(800px 520px at 90% 10%, rgba(170, 90, 80, 0.18) 0%, transparent 60%),
-        radial-gradient(1000px 700px at 50% 120%, rgba(80, 140, 110, 0.18) 0%, transparent 60%),
-        linear-gradient(180deg, #4a5059, #2f333a);
-      overflow: hidden;
+      font-family: 'Outfit', sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
     }
 
-    .ascii-bg {
+    /* Live Wallpaper Container */
+    #wallpaper {
       position: fixed;
       inset: 0;
-      z-index: 0;
-      background: transparent;
+      z-index: -1;
+      background: radial-gradient(circle at center, #0d1117 0%, #05070a 100%);
     }
 
-    .diamond-wrap {
+    #fluxCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      filter: contrast(1.1) brightness(1.1);
+    }
+
+    .vignette {
       position: fixed;
       inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      z-index: 1;
+      background: radial-gradient(circle at center, transparent 20%, rgba(0, 0, 0, 0.6) 100%);
       pointer-events: none;
-      z-index: 2;
-      perspective: 900px;
-    }
-
-    .diamond {
-      position: relative;
-      width: 800px;
-      height: 600px;
-      transform-style: preserve-3d;
-      animation: spin 18s linear infinite;
-    }
-
-    .diamond-face {
-      position: absolute;
-      inset: 0;
-      margin: auto;
-      width: 420px;
-      height: 420px;
-      border: 1px solid rgba(240, 120, 210, 0.35);
-      background:
-        linear-gradient(135deg, rgba(255, 120, 200, 0.18), rgba(90, 200, 255, 0.12)),
-        radial-gradient(120px 120px at 30% 30%, rgba(255, 180, 240, 0.18), transparent 60%);
-      transform: rotate(45deg);
-      box-shadow: 0 0 18px rgba(255, 120, 200, 0.25);
-      backdrop-filter: blur(2px);
-    }
-
-    .diamond-front {
-      transform: translateZ(120px) rotate(45deg);
-    }
-
-    .diamond-back {
-      transform: translateZ(-120px) rotate(45deg);
-    }
-
-    .diamond-top {
-      transform: rotateX(90deg) translateZ(120px) rotate(45deg);
-    }
-
-    .diamond-bottom {
-      transform: rotateX(-90deg) translateZ(120px) rotate(45deg);
-    }
-
-    .terminal {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 220px;
-      height: 220px;
-      transform: translate(-50%, -50%);
-      background: rgba(8, 12, 18, 0.9);
-      border: 1px solid rgba(120, 240, 255, 0.75);
-      border-radius: 12px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 18px rgba(120, 240, 255, 0.45);
-      color: #e6f7ff;
-      font-family: "Courier New", Courier, monospace;
-      z-index: 3;
-      backdrop-filter: blur(6px);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .terminal-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(0, 255, 209, 0.2);
-      color: rgba(255, 190, 235, 0.9);
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .terminal-lights {
-      display: flex;
-      gap: 6px;
-    }
-
-    .terminal-light {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #ff6bd6;
-      box-shadow: 0 0 8px rgba(255, 107, 214, 0.9);
-    }
-
-    .terminal-body {
-      padding: 12px;
-      font-size: 13px;
-      line-height: 1.35;
-      overflow: hidden;
-      white-space: pre-wrap;
-      flex: 1;
-    }
-
-    .terminal-prompt {
-      color: #7cf3ff;
-    }
-
-    .terminal-cursor {
-      display: inline-block;
-      width: 8px;
-      height: 16px;
-      background: #ff8de2;
-      margin-left: 4px;
-      animation: blink 1s steps(2, start) infinite;
-    }
-
-    @keyframes blink {
-
-      0%,
-      49% {
-        opacity: 1;
-      }
-
-      50%,
-      100% {
-        opacity: 0;
-      }
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotateX(18deg) rotateY(0deg);
-      }
-
-      100% {
-        transform: rotateX(18deg) rotateY(360deg);
-      }
-    }
-
-    .ascii-wrap {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 30px;
-    }
-
-    .ascii-canvas {
-      line-height: 0.85;
-      letter-spacing: 0.05em;
-      color: rgba(120, 70, 170, 0.35);
-      user-select: none;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      font-family: monospace;
-      margin-left: 10%;
     }
 
     .ui {
@@ -216,240 +72,244 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
-      gap: 40px;
+      gap: 30px;
+      animation: fadeIn 1.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .header {
       width: 100%;
-      max-width: 600px;
-      overflow: hidden;
+      max-width: 900px;
+      text-align: center;
+      margin-bottom: 20px;
     }
 
     .header h1 {
-      font-size: 48px;
-      font-weight: bold;
+      font-size: clamp(36px, 10vw, 84px);
+      font-weight: 900;
       margin: 0;
-      color: var(--ink);
-      text-shadow: 0 4px 20px rgba(107, 114, 128, 0.3);
-      white-space: nowrap;
-      animation: scroll 20s linear infinite;
-    }
-
-    @keyframes scroll {
-      0% {
-        transform: translateX(100%);
-      }
-
-      100% {
-        transform: translateX(-100%);
-      }
+      text-transform: uppercase;
+      letter-spacing: -3px;
+      line-height: 0.9;
+      background: linear-gradient(135deg, #00f3ff, #bc13fe, #ff00ea);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.3));
     }
 
     .controls {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 30px;
+      gap: 20px;
       flex-wrap: wrap;
     }
 
     .btn {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      border: 1px solid #1f2a33;
-      background: linear-gradient(145deg, #0f141b, #1a2230);
-      color: #d7f9ff;
+      width: 68px;
+      height: 68px;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--ink);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow:
-        0 0 0 1px rgba(0, 255, 209, 0.15) inset,
-        0 8px 30px rgba(0, 0, 0, 0.6),
-        0 0 18px rgba(0, 255, 209, 0.18);
-      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, filter 0.2s;
-      position: relative;
-      isolation: isolate;
-    }
-
-    .btn::after {
-      content: "";
-      position: absolute;
-      inset: -2px;
-      border-radius: 50%;
-      background: conic-gradient(from 120deg, rgba(0, 255, 209, 0.0), rgba(0, 255, 209, 0.55), rgba(255, 190, 0, 0.0));
-      opacity: 0;
-      filter: blur(6px);
-      z-index: -1;
-      transition: opacity 0.2s;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(16px);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .btn:hover {
-      transform: translateY(-2px) scale(1.06);
-      border-color: #2ee6c3;
-      box-shadow:
-        0 0 0 1px rgba(0, 255, 209, 0.35) inset,
-        0 10px 35px rgba(0, 0, 0, 0.65),
-        0 0 26px rgba(0, 255, 209, 0.35);
-      filter: saturate(1.1);
-    }
-
-    .btn:hover::after {
-      opacity: 0.8;
+      transform: translateY(-8px) scale(1.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 243, 255, 0.05);
+      box-shadow: 0 15px 45px rgba(0, 243, 255, 0.25);
     }
 
     .btn.play {
-      width: 90px;
-      height: 90px;
-      background: linear-gradient(135deg, #00ffd1 0%, #00a2ff 45%, #ffb000 100%);
-      color: #0b0f14;
-      box-shadow:
-        0 0 0 2px rgba(0, 255, 209, 0.25) inset,
-        0 18px 45px rgba(0, 0, 0, 0.7),
-        0 0 30px rgba(0, 255, 209, 0.35);
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+      color: #05070a;
+      box-shadow: 0 0 60px rgba(188, 19, 254, 0.4);
+      border: none;
+    }
+
+    .btn.play:hover {
+      transform: scale(1.15) rotate(5deg);
+      box-shadow: 0 0 80px rgba(0, 243, 255, 0.6);
     }
 
     .range {
       width: 150px;
-      height: 8px;
-      border-radius: 4px;
+      height: 4px;
+      border-radius: 2px;
       outline: none;
       cursor: pointer;
-      background: linear-gradient(to right, #9ca3af 0%, #9ca3af 70%, rgba(255, 255, 255, 0.3) 70%, rgba(255, 255, 255, 0.3) 100%);
+      background: rgba(255, 255, 255, 0.1);
       appearance: none;
+      margin-left: 10px;
     }
 
     .range::-webkit-slider-thumb {
       appearance: none;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      background: #6b7280;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      background: var(--ink-strong);
+      box-shadow: 0 0 15px var(--accent);
+      border: 2px solid var(--accent);
     }
 
     .stations {
       display: flex;
-      gap: 15px;
+      gap: 12px;
       flex-wrap: wrap;
       justify-content: center;
-    }
-
-    .eq-toggle {
-      padding: 8px 18px;
-      border-radius: 999px;
-      border: 1px solid #1f2a33;
-      background: linear-gradient(145deg, #0f141b, #1a2230);
-      color: #d7f9ff;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 255, 209, 0.12);
-      transition: all 0.2s;
-    }
-
-    .eq-toggle.active {
-      background: linear-gradient(135deg, #00ffd1 0%, #00a2ff 45%, #ffb000 100%);
-      color: #0b0f14;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6), 0 0 18px rgba(0, 255, 209, 0.35);
+      max-width: 600px;
     }
 
     .station {
       padding: 12px 24px;
-      border-radius: 30px;
-      border: 1px solid #1f2a33;
-      background: linear-gradient(145deg, #0f141b, #1a2230);
-      color: #d7f9ff;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--ink);
       cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      box-shadow: 0 5px 18px rgba(0, 0, 0, 0.6), 0 0 14px rgba(0, 255, 209, 0.12);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
       transition: all 0.3s;
     }
 
     .station.active {
-      background: linear-gradient(135deg, #00ffd1 0%, #00a2ff 45%, #ffb000 100%);
-      color: #0b0f14;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 24px rgba(0, 255, 209, 0.35);
+      background: var(--accent);
+      color: #05070a;
+      box-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+      border: none;
     }
 
-    .station:hover {
-      transform: translateY(-2px);
+    .station:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent);
+    }
+
+    .eq-toggle {
+      padding: 10px 24px;
+      border-radius: 30px;
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      background: transparent;
+      color: var(--accent);
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .eq-toggle.active {
+      background: var(--accent);
+      color: #05070a;
+      box-shadow: 0 0 20px var(--accent);
     }
 
     .label {
-      font-size: 12px;
-      color: var(--ink-strong);
-      opacity: 0.7;
-      text-align: center;
-      margin-top: -10px;
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      opacity: 0.8;
+      margin-bottom: -10px;
     }
 
     .icon {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
     }
 
     .icon.big {
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
     }
 
     .hidden {
       display: none;
     }
 
+    /* Glass Panels */
+    .terminal-mini {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      width: 280px;
+      height: 140px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      border-radius: 15px;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #00f3ff;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      z-index: 5;
+    }
+
     @media (max-width: 640px) {
       .header h1 {
-        font-size: 34px;
+        font-size: 42px;
       }
 
       .btn {
-        width: 54px;
-        height: 54px;
+        width: 55px;
+        height: 55px;
       }
 
       .btn.play {
-        width: 82px;
-        height: 82px;
+        width: 90px;
+        height: 90px;
+      }
+
+      .terminal-mini {
+        display: none;
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="ascii-bg">
-    <div class="ascii-wrap">
-      <div id="ascii" class="ascii-canvas"></div>
-    </div>
+  <div id="wallpaper">
+    <canvas id="fluxCanvas"></canvas>
   </div>
+  <div class="vignette"></div>
 
-  <div class="diamond-wrap" aria-hidden="true">
-    <div class="diamond">
-      <div class="diamond-face diamond-front"></div>
-      <div class="diamond-face diamond-back"></div>
-      <div class="diamond-face diamond-top"></div>
-      <div class="diamond-face diamond-bottom"></div>
-      <aside class="terminal">
-        <div class="terminal-header">
-          <div class="terminal-lights">
-            <span class="terminal-light"></span>
-            <span class="terminal-light"></span>
-            <span class="terminal-light"></span>
-          </div>
-          Assistant Console
-        </div>
-        <div class="terminal-body" id="terminalBody"></div>
-      </aside>
-    </div>
-  </div>
+  <aside class="terminal-mini">
+    <div style="color: #ff00ea; font-weight: bold; margin-bottom: 5px;">SYSTEM STATUS_</div>
+    <div id="statusLines"></div>
+  </aside>
 
   <div class="ui">
     <div class="header">
-      <h1>drumNbuss Diagnosis</h1>
+      <h1>DRUM N BASS<br>DIAGNOSIS</h1>
     </div>
 
     <div class="controls">
@@ -516,41 +376,95 @@
       <input id="volume" class="range" type="range" min="0" max="100" value="70" />
     </div>
 
-    <div class="label" id="stationLabel">Станція: DNB</div>
+    <div class="label" id="stationLabel">STATION: INITIALIZING...</div>
 
-    <button id="eqToggle" class="eq-toggle" type="button">EQ</button>
+    <button id="eqToggle" class="eq-toggle" type="button">EQ SYSTEM</button>
 
     <div class="stations" id="stations"></div>
 
-    <div id="scWrap" style="width: 100%; max-width: 640px; display: none;">
+    <div id="scWrap"
+      style="width: 100%; max-width: 640px; display: none; padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.5);">
       <iframe id="scPlayer" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
-        title="SoundCloud player"></iframe>
+        title="SoundCloud"></iframe>
     </div>
 
-    <div id="dzWrap" style="width: 100%; max-width: 640px; display: none;">
-      <iframe id="dzPlayer" width="100%" height="210" frameborder="0"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        title="Deezer player"></iframe>
+    <div id="dzWrap"
+      style="width: 100%; max-width: 640px; display: none; padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.5);">
+      <iframe id="dzPlayer" width="100%" height="210" frameborder="0" allow="autoplay; encrypted-media"
+        title="Deezer"></iframe>
     </div>
   </div>
 
-  <audio id="audio" preload="none"></audio>
+  <audio id="audio" crossorigin="anonymous"></audio>
 
   <script>
+    // Neon Wallpaper logic
+    const canvas = document.getElementById('fluxCanvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.size = Math.random() * 2 + 0.5;
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.4;
+        this.alpha = Math.random() * 0.5 + 0.1;
+        this.hue = Math.random() > 0.5 ? 180 : 280;
+      }
+      update() {
+        this.x += this.vx; this.y += this.vy;
+        if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
+      }
+      draw() {
+        ctx.fillStyle = `hsla(${this.hue}, 100%, 70%, ${this.alpha})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function initWallpaper() {
+      resize();
+      particles = [];
+      for (let i = 0; i < 150; i++) particles.push(new Particle());
+    }
+
+    function animateWallpaper() {
+      ctx.fillStyle = 'rgba(5, 7, 10, 0.15)';
+      ctx.fillRect(0, 0, w, h);
+
+      particles.forEach(p => { p.update(); p.draw(); });
+
+      ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        const y = (h / 5) * (i + 1) + Math.sin(Date.now() * 0.001 + i) * 80;
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(w / 3, y + 100, w / 1.5, y - 100, w, y);
+        ctx.stroke();
+      }
+      requestAnimationFrame(animateWallpaper);
+    }
+    window.addEventListener('resize', initWallpaper);
+    initWallpaper();
+    animateWallpaper();
+
+    // Radio logic
     const stations = [
-      { name: 'Bassdrive', type: 'stream', url: 'http://streams.bassdrive.com:8000/' },
-      { name: 'DNBRadio', type: 'stream', url: 'https://dnbradio.com/hi.mp3' },
-      {
-        name: 'Kyky-A',
-        type: 'soundcloud',
-        url: 'https://soundcloud.com/xsilofon/sets/kyky-a'
-      },
-      {
-        name: 'Techno VIP',
-        type: 'deezer',
-        id: '1275756721'
-      },
-      { name: 'Techno Live', type: 'stream', url: 'https://jazz-wr11.ice.infomaniak.ch/jazz-wr11-128.mp3' }
+      { name: 'BASSDRIVE', type: 'stream', url: 'http://streams.bassdrive.com:8000/' },
+      { name: 'DNBRADIO', type: 'stream', url: 'https://dnbradio.com/hi.mp3' },
+      { name: 'KYKY-A', type: 'soundcloud', url: 'https://soundcloud.com/xsilofon/sets/kyky-a' },
+      { name: 'TECHNO VIP', type: 'deezer', id: '1275756721' },
+      { name: 'TECHNO LIVE', type: 'stream', url: 'https://jazz-wr11.ice.infomaniak.ch/jazz-wr11-128.mp3' }
     ];
 
     const audio = document.getElementById('audio');
@@ -563,304 +477,138 @@
     const volumeEl = document.getElementById('volume');
     const stationsEl = document.getElementById('stations');
     const stationLabel = document.getElementById('stationLabel');
-    const iconPlay = document.getElementById('iconPlay');
-    const iconPause = document.getElementById('iconPause');
-    const iconVol = document.getElementById('iconVol');
-    const iconMute = document.getElementById('iconMute');
     const eqToggle = document.getElementById('eqToggle');
-    const scWrap = document.getElementById('scWrap');
-    const scPlayer = document.getElementById('scPlayer');
-    const dzWrap = document.getElementById('dzWrap');
-    const dzPlayer = document.getElementById('dzPlayer');
-    const terminalBody = document.getElementById('terminalBody');
+    const statusLines = document.getElementById('statusLines');
 
     let currentStation = 0;
     let isPlaying = false;
     let isMuted = false;
     let eqEnabled = false;
-    let audioContext = null;
-    let sourceNode = null;
-    let eqFilters = [];
+    let audioContext = null, sourceNode = null, eqFilters = [];
 
-    function buildEqFilters(ctx) {
-      const freqs = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
-      return freqs.map((freq) => {
+    function updateTerminal() {
+      const lines = [
+        `> STREAM: ${stations[currentStation].name}`,
+        `> STATE: ${isPlaying ? 'PLAYING' : 'READY'}`,
+        `> VOLUME: ${volumeEl.value}%`,
+        `> EQ: ${eqEnabled ? 'ACTIVE' : 'BYPASS'}`,
+        `> LINK: ${window.location.hostname}`
+      ];
+      statusLines.innerHTML = lines.map(line => `<div>${line}</div>`).join('');
+    }
+
+    function buildEq(ctx) {
+      return [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000].map(freq => {
         const f = ctx.createBiquadFilter();
-        f.type = 'peaking';
-        f.frequency.value = freq;
-        f.Q.value = 1;
-        f.gain.value = 0;
+        f.type = 'peaking'; f.frequency.value = freq; f.Q.value = 1; f.gain.value = 0;
         return f;
       });
     }
 
-    function ensureAudioGraph() {
+    function connectEq() {
       if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
       if (!sourceNode) sourceNode = audioContext.createMediaElementSource(audio);
-      if (eqFilters.length === 0) eqFilters = buildEqFilters(audioContext);
-    }
+      if (eqFilters.length === 0) eqFilters = buildEq(audioContext);
 
-    function connectAudioGraph() {
-      if (!audioContext || !sourceNode) return;
       sourceNode.disconnect();
-      eqFilters.forEach((f) => f.disconnect());
+      eqFilters.forEach(f => f.disconnect());
       if (eqEnabled) {
         sourceNode.connect(eqFilters[0]);
-        for (let i = 0; i < eqFilters.length - 1; i++) {
-          eqFilters[i].connect(eqFilters[i + 1]);
-        }
+        for (let i = 0; i < eqFilters.length - 1; i++) eqFilters[i].connect(eqFilters[i + 1]);
         eqFilters[eqFilters.length - 1].connect(audioContext.destination);
       } else {
         sourceNode.connect(audioContext.destination);
       }
     }
 
-    function setVolumeUI(value) {
-      volumeEl.style.background = `linear-gradient(to right, #9ca3af 0%, #9ca3af ${value}%, rgba(255,255,255,0.3) ${value}%, rgba(255,255,255,0.3) 100%)`;
-    }
-
-    function setPlayUI(playing) {
-      isPlaying = playing;
-      iconPlay.classList.toggle('hidden', playing);
-      iconPause.classList.toggle('hidden', !playing);
-    }
-
-    function setMuteUI(muted) {
-      isMuted = muted;
-      iconVol.classList.toggle('hidden', muted);
-      iconMute.classList.toggle('hidden', !muted);
-    }
-
-    function loadStation(index) {
+    function setStation(index) {
       currentStation = index;
-      const s = stations[currentStation];
+      const s = stations[index];
+      const scWrap = document.getElementById('scWrap');
+      const dzWrap = document.getElementById('dzWrap');
+
+      scWrap.style.display = s.type === 'soundcloud' ? 'block' : 'none';
+      dzWrap.style.display = s.type === 'deezer' ? 'block' : 'none';
+
       if (s.type === 'soundcloud') {
-        audio.pause();
-        setPlayUI(false);
-        scWrap.style.display = 'block';
-        dzWrap.style.display = 'none';
-        scPlayer.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(s.url)}&color=%2300ffd1&auto_play=true&show_teaser=false&show_artwork=true&show_comments=false&show_playcount=false`;
-        eqToggle.disabled = true;
-        eqToggle.classList.remove('active');
+        audio.pause(); isPlaying = false;
+        document.getElementById('scPlayer').src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(s.url)}&color=%2300f3ff&auto_play=true`;
       } else if (s.type === 'deezer') {
-        audio.pause();
-        setPlayUI(false);
-        scWrap.style.display = 'none';
-        dzWrap.style.display = 'block';
-        dzPlayer.src = `https://widget.deezer.com/widget/dark/playlist/${encodeURIComponent(s.id)}`;
-        eqToggle.disabled = true;
-        eqToggle.classList.remove('active');
+        audio.pause(); isPlaying = false;
+        document.getElementById('dzPlayer').src = `https://widget.deezer.com/widget/dark/playlist/${s.id}`;
       } else {
-        scPlayer.src = '';
-        scWrap.style.display = 'none';
-        dzPlayer.src = '';
-        dzWrap.style.display = 'none';
-        audio.src = s.url;
-        audio.load();
-        setPlayUI(false);
-        eqToggle.disabled = false;
-        connectAudioGraph();
+        audio.src = s.url; audio.load();
+        if (isPlaying) audio.play();
+        connectEq();
       }
-      renderStations();
-      stationLabel.textContent = 'Станція: ' + s.name;
+
+      stationLabel.textContent = `STATION: ${s.name}`;
+      updateStationsUI();
+      updateTerminal();
     }
 
-    function renderStations() {
+    function updateStationsUI() {
       stationsEl.innerHTML = '';
       stations.forEach((s, i) => {
         const btn = document.createElement('button');
-        btn.className = 'station' + (i === currentStation ? ' active' : '');
+        btn.className = `station ${i === currentStation ? 'active' : ''}`;
         btn.textContent = s.name;
-        btn.addEventListener('click', () => loadStation(i));
+        btn.onclick = () => setStation(i);
         stationsEl.appendChild(btn);
       });
     }
 
-    playBtn.addEventListener('click', () => {
+    playBtn.onclick = () => {
       if (stations[currentStation].type !== 'stream') return;
-      ensureAudioGraph();
-      connectAudioGraph();
       if (audio.paused) {
-        audio.play().then(() => setPlayUI(true)).catch(() => setPlayUI(false));
+        audio.play().then(() => { isPlaying = true; updateUI(); });
       } else {
-        audio.pause();
-        setPlayUI(false);
+        audio.pause(); isPlaying = false; updateUI();
       }
-    });
+    };
 
-    muteBtn.addEventListener('click', () => {
+    function updateUI() {
+      document.getElementById('iconPlay').classList.toggle('hidden', isPlaying);
+      document.getElementById('iconPause').classList.toggle('hidden', !isPlaying);
+      updateTerminal();
+    }
+
+    muteBtn.onclick = () => {
       audio.muted = !audio.muted;
-      setMuteUI(audio.muted);
-    });
+      isMuted = audio.muted;
+      document.getElementById('iconVol').classList.toggle('hidden', isMuted);
+      document.getElementById('iconMute').classList.toggle('hidden', !isMuted);
+    };
 
-    prevBtn.addEventListener('click', () => {
-      const prev = (currentStation - 1 + stations.length) % stations.length;
-      loadStation(prev);
-    });
+    prevBtn.onclick = () => setStation((currentStation - 1 + stations.length) % stations.length);
+    nextBtn.onclick = () => setStation((currentStation + 1) % stations.length);
 
-    nextBtn.addEventListener('click', () => {
-      const next = (currentStation + 1) % stations.length;
-      loadStation(next);
-    });
+    volumeEl.oninput = (e) => {
+      const v = e.target.value / 100;
+      audio.volume = v;
+      updateTerminal();
+    };
 
-    volumeEl.addEventListener('input', (e) => {
-      const value = Number(e.target.value || 0);
-      audio.volume = value / 100;
-      setVolumeUI(value);
-    });
-
-    tgBtn.addEventListener('click', () => {
-      window.open('https://t.me/qwqwqqww', '_blank');
-    });
-
-    shareBtn.addEventListener('click', async () => {
-      const shareData = {
-        title: 'DNBRADIO',
-        text: 'Listen to the best Drum and Bass radio with ASCII visualization!',
-        url: window.location.href.split('?')[0]
-      };
+    tgBtn.onclick = () => window.open('https://t.me/qwqwqqww', '_blank');
+    shareBtn.onclick = async () => {
+      const url = window.location.href.split('?')[0];
       if (navigator.share) {
-        try { await navigator.share(shareData); } catch (e) { }
+        await navigator.share({ title: 'DNBRADIO', url });
       } else {
-        try {
-          await navigator.clipboard.writeText(shareData.url);
-          stationLabel.textContent = 'Link copied to clipboard!';
-          setTimeout(() => {
-            stationLabel.textContent = 'Станція: ' + stations[currentStation].name;
-          }, 2000);
-        } catch (e) { }
+        await navigator.clipboard.writeText(url);
+        stationLabel.textContent = 'LINK COPIED!';
+        setTimeout(() => stationLabel.textContent = `STATION: ${stations[currentStation].name}`, 2000);
       }
-    });
+    };
 
-    eqToggle.addEventListener('click', () => {
-      if (stations[currentStation].type === 'soundcloud') return;
+    eqToggle.onclick = () => {
       eqEnabled = !eqEnabled;
       eqToggle.classList.toggle('active', eqEnabled);
-      ensureAudioGraph();
-      connectAudioGraph();
-    });
+      if (stations[currentStation].type === 'stream') connectEq();
+      updateTerminal();
+    };
 
-    audio.addEventListener('play', () => setPlayUI(true));
-    audio.addEventListener('pause', () => setPlayUI(false));
-    audio.addEventListener('ended', () => setPlayUI(false));
-
-    function setupAutoReload() {
-      if (location.protocol === 'file:') return;
-      const params = new URLSearchParams(location.search);
-      if (params.get('reload') !== '1') return;
-      let lastTag = null;
-      setInterval(() => {
-        fetch(location.href, { method: 'HEAD', cache: 'no-store' })
-          .then((res) => {
-            const tag = res.headers.get('etag') || res.headers.get('last-modified');
-            if (tag && lastTag && tag !== lastTag) location.reload();
-            if (tag && !lastTag) lastTag = tag;
-          })
-          .catch(() => { });
-      }, 2000);
-    }
-
-    function renderTerminal() {
-      if (!terminalBody) return;
-      const url = window.location.origin + window.location.pathname;
-      terminalBody.innerHTML = [
-        '<span class="terminal-prompt">dnbradio@studio:~$</span> status',
-        'player: ready',
-        'mode: ambient',
-        'url: ' + url,
-        'eq: streams only',
-        'sharing: enabled',
-        '',
-        '<span class="terminal-prompt">dnbradio@studio:~$</span> listen --live',
-        '<span class="terminal-cursor"></span>'
-      ].join('\n');
-    }
-
-    setVolumeUI(70);
-    audio.volume = 0.7;
-    loadStation(0);
-    setupAutoReload();
-    renderTerminal();
-
-    // ASCII animation
-    const ascii = document.getElementById('ascii');
-    const width = 65;
-    const height = 65;
-    let grid = [];
-    let time = 0;
-
-    function initGrid() {
-      grid = [];
-      for (let y = 0; y < height; y++) {
-        const row = [];
-        for (let x = 0; x < width; x++) row.push(' ');
-        grid.push(row);
-      }
-    }
-
-    function renderGrid() {
-      let html = '';
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) html += grid[y][x];
-        html += '<br>';
-      }
-      ascii.innerHTML = html;
-    }
-
-    function updateGrid() {
-      initGrid();
-      const blockSize = 30;
-      const blockX = Math.floor(width / 2 - blockSize / 2);
-      const blockY = Math.floor(height / 2 - blockSize / 2);
-      const t = time * 0.005;
-
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          if (x >= blockX && x < blockX + blockSize && y >= blockY && y < blockY + blockSize) {
-            const innerDist = Math.min(
-              x - blockX,
-              blockX + blockSize - x,
-              y - blockY,
-              blockY + blockSize - y
-            );
-            const erosion = time * 0.0067;
-            if (innerDist > erosion) grid[y][x] = '1';
-            else grid[y][x] = Math.random() > 0.8 ? '1' : '0';
-          } else {
-            const dx = x - width / 2;
-            const dy = y - height / 2;
-            const angle = Math.atan2(dy, dx);
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const wave = Math.sin(dist * 0.2 - t + angle * 1.5);
-            const flow = Math.sin(x * 0.08 + y * 0.04 + t * 0.4);
-            if (flow + wave > 0.4) grid[y][x] = '0';
-            else if (flow + wave < -0.4) grid[y][x] = '~';
-          }
-        }
-      }
-
-      for (let i = 0; i < 5; i++) {
-        let cx = blockX + Math.floor(Math.random() * blockSize);
-        let cy = blockY + Math.floor(Math.random() * blockSize);
-        const length = Math.floor(Math.random() * 10) + 5;
-        for (let j = 0; j < length; j++) {
-          if (cx >= 0 && cx < width && cy >= 0 && cy < height) grid[cy][cx] = '0';
-          cx += Math.floor(Math.random() * 3) - 1;
-          cy += Math.floor(Math.random() * 3) - 1;
-        }
-      }
-
-      time++;
-    }
-
-    function animate() {
-      updateGrid();
-      renderGrid();
-      requestAnimationFrame(animate);
-    }
-
-    initGrid();
-    requestAnimationFrame(animate);
+    setStation(0);
   </script>
 </body>
 
